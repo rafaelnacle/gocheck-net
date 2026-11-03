@@ -30,16 +30,19 @@ An interactive, concurrent terminal network status checker written in Go with **
 ## Usage
 
 ### Run with default targets
+
 ```bash
 go run main.go
 ```
 
 ### Check custom endpoints
+
 ```bash
 go run main.go https://api.github.com google.com 1.1.1.1:53 localhost:8080
 ```
 
 ### Custom timeout
+
 ```bash
 go run main.go -timeout 1.5s https://example.com 8.8.8.8:53
 ```
@@ -52,6 +55,7 @@ go run main.go -timeout 1.5s https://example.com 8.8.8.8:53
 ## Running Tests
 
 Run table-driven unit tests with race detection:
+
 ```bash
 go test -v -race ./...
 ```
