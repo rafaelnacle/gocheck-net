@@ -17,13 +17,17 @@ An interactive, visual terminal network status playground and endpoint checker w
  │ Total: 5  •  Up: 4  •  Down: 1  •  In-flight: 0  •  Health: 80%             │
  ╰─────────────────────────────────────────────────────────────────────────────╯
 
-  [↑/↓] Select  [+] Add  [x] Delete  [t] Theme (Default Modern)  [s] Bell (ON 🔔)  [r] Refresh  [q] Quit
+  [↑/↓] Select  [Enter] Inspect  [+] Add  [x] Delete  [t] Theme  [s] Bell  [r] Refresh  [q] Quit
 ```
 
 ---
 
 ## ✨ Features
 
+- **🔍 Target Inspector Modal**: Press `Enter` or `Space` on any selected row to inspect:
+  - **SSL/TLS Certificate Health**: Issuer, Common Name, TLS version, and **days remaining until expiration** (with color-coded validity badges).
+  - **DNS Resolution**: Live resolved IPv4 and IPv6 addresses.
+  - **HTTP Response Headers**: Server, Content-Type, and Content-Length.
 - **Expressive Network Mascot & Health Meter**: ASCII companion header that reacts to your network state (`(^‿^)`, `(•_•)`, `(>_<)`) alongside a real-time health gauge.
 - **Visual Speed Bars & Latency Ratings**: Colored graphical bars with speed tier emojis:
   - `⚡` Blazing (<80ms)
@@ -69,12 +73,13 @@ go run main.go -timeout 1.5s https://example.com 8.8.8.8:53
 | :--- | :--- |
 | `↑` / `k` | Move selection cursor up |
 | `↓` / `j` | Move selection cursor down |
+| `Enter` / `Space` / `i` | **Open / Close Target Inspector Modal** (SSL/TLS & DNS) |
 | `+` / `a` | Add new target interactively (URL or `host:port`) |
 | `x` / `d` | Delete selected target |
 | `t` | Cycle through color themes (*Default, Matrix, Cyberpunk, Amber*) |
 | `s` | Toggle audio bell alerts for outages (*ON / OFF*) |
 | `r` | Refresh and re-probe all targets immediately |
-| `Esc` | Cancel input prompt or clear notices |
+| `Esc` | Close inspector, cancel input prompt, or clear notices |
 | `q` / `Ctrl+C` | Quit program |
 
 ---

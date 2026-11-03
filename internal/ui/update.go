@@ -25,6 +25,38 @@ func ringBellCmd() tea.Msg {
 
 // Update processes messages (user input, completed probes) and returns the updated model.
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	// If Inspector modal is open
+	if m.InspectorMode {
+		switch msg := msg.(type) {
+		case tea.KeyMsg:
+			switch msg.String() {
+			case "esc", "enter", "q", "i", " ":
+				m.InspectorMode = false
+				return m, nil
+
+			case "up", "k":
+				if m.Cursor > 0 {
+					m.Cursor--
+				}
+				return m, nil
+
+			case "down", "j":
+				if m.Cursor < len(m.Targets)-1 {
+					m.Cursor++
+				}
+				return m, nil
+
+			case "ctrl+c":
+				m.Quitting = true
+				return m, tea.Quit
+			}
+
+		case checkDoneMsg:
+			return m.handleCheckDone(msg)
+		}
+		return m, nil
+	}
+
 	// If user is currently typing a new target in the interactive input box
 	if m.InputMode {
 		switch msg := msg.(type) {
@@ -80,6 +112,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			m.Quitting = true
 			return m, tea.Quit
+
+		case "enter", " ", "i":
+			if len(m.Targets) > 0 {
+				m.InspectorMode = true
+			}
+			return m, nil
 
 		case "up", "k":
 			if m.Cursor > 0 {
@@ -139,18 +177,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-// handleCheckDone updates the probe result and rings bell on outages if enabled.
-func (m Model) handleCheckDone(msg checkDoneMsg) (tea.Model, tea.Cmd) {
+// handleCheckDone updates target item state and fires outage audio bells if appropriate.
+func (m *Model) handleCheckDone(msg checkDoneMsg) (tea.Model, tea.Cmd) {
 	if msg.Index >= 0 && msg.Index < len(m.Targets) {
 		m.Targets[msg.Index].Result = &msg.Result
 		m.Targets[msg.Index].Checking = false
 
-		if !msg.Result.Up && m.AudioAlert {
-			m.FlashNotice = fmt.Sprintf("⚠️ Outage detected on %s!", msg.Result.Target.Raw)
-			return m, ringBellCmd
+		// If audio alert enabled and probe failed / down, ring bell
+		if m.AudioAlert && !msg.Result.Up {
+			return *m, ringBellCmd
 		}
 	}
-	return m, nil
+	return *m, nil
 }
 
 // checkAllCmd generates a batched command that probes all targets in parallel.
@@ -162,7 +200,7 @@ func (m Model) checkAllCmd() tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-// checkTargetCmd produces a tea.Cmd that runs checker.Check in the background.
+// checkTargetCmd produces an async worker function that executes checker.Check.
 func checkTargetCmd(index int, target checker.Target, timeout time.Duration) tea.Cmd {
 	return func() tea.Msg {
 		res := checker.Check(context.Background(), target, timeout)

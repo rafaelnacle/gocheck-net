@@ -22,13 +22,28 @@ type Target struct {
 	Address  string   // parsed URL or host:port
 }
 
+// CertInfo holds SSL/TLS certificate metadata.
+type CertInfo struct {
+	Issuer     string    // e.g. "Let's Encrypt Authority X3"
+	CommonName string    // Subject CN
+	DNSNames   []string  // Subject Alternative Names (SANs)
+	NotBefore  time.Time // Validity start
+	NotAfter   time.Time // Expiration timestamp
+	DaysLeft   int       // Days until expiration (negative if expired)
+	Expired    bool      // True if NotAfter is in the past
+	TLSVersion string    // e.g. "TLS 1.3", "TLS 1.2"
+}
+
 // Result contains the outcome and metrics of a probe.
 type Result struct {
-	Target     Target
-	Up         bool
-	StatusCode int           // HTTP response status (e.g. 200, 404, 500)
-	Latency    time.Duration // Time taken for probe
-	Err        error         // Detailed error if probe failed
+	Target      Target
+	Up          bool
+	StatusCode  int               // HTTP response status (e.g. 200, 404, 500)
+	Latency     time.Duration     // Time taken for probe
+	Err         error             // Detailed error if probe failed
+	ResolvedIPs []string          // DNS resolved IP addresses
+	Cert        *CertInfo         // SSL/TLS certificate details (if HTTPS / TLS)
+	Headers     map[string]string // Useful HTTP headers (Server, Content-Type, etc.)
 }
 
 // ParseTarget normalizes a raw user input string into a Target struct.

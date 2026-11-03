@@ -17,15 +17,16 @@ type TargetItem struct {
 
 // Model represents the Bubble Tea application state.
 type Model struct {
-	Targets      []TargetItem
-	Timeout      time.Duration
-	Cursor       int             // Selected row in table
-	CurrentTheme int             // Index in Themes slice
-	AudioAlert   bool            // Play terminal bell on downtime
-	InputMode    bool            // True when typing new target
-	TextInput    textinput.Model // Bubbles textinput widget
-	FlashNotice  string          // Brief notification message
-	Quitting     bool
+	Targets       []TargetItem
+	Timeout       time.Duration
+	Cursor        int             // Selected row in table
+	CurrentTheme  int             // Index in Themes slice
+	AudioAlert    bool            // Play terminal bell on downtime
+	InputMode     bool            // True when typing new target
+	InspectorMode bool            // True when viewing detailed inspection modal
+	TextInput     textinput.Model // Bubbles textinput widget
+	FlashNotice   string          // Brief notification message
+	Quitting      bool
 }
 
 // checkDoneMsg is delivered to Update when an async probe completes.
@@ -51,14 +52,15 @@ func New(targets []checker.Target, timeout time.Duration) Model {
 	ti.CharLimit = 120
 
 	return Model{
-		Targets:      items,
-		Timeout:      timeout,
-		Cursor:       0,
-		CurrentTheme: 0,
-		AudioAlert:   true, // Enabled by default for outages
-		InputMode:    false,
-		TextInput:    ti,
-		Quitting:     false,
+		Targets:       items,
+		Timeout:       timeout,
+		Cursor:        0,
+		CurrentTheme:  0,
+		AudioAlert:    true, // Enabled by default for outages
+		InputMode:     false,
+		InspectorMode: false,
+		TextInput:     ti,
+		Quitting:      false,
 	}
 }
 

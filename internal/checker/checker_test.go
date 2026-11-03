@@ -60,6 +60,7 @@ func TestParseTarget(t *testing.T) {
 func TestCheckHTTP(t *testing.T) {
 	// Create mock HTTP server
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Server", "TestMockServer/1.0")
 		switch r.URL.Path {
 		case "/200":
 			w.WriteHeader(http.StatusOK)
@@ -110,7 +111,34 @@ func TestCheckHTTP(t *testing.T) {
 			if res.StatusCode != tt.expectedCode {
 				t.Errorf("CheckHTTP(%s) StatusCode = %d, want %d", tt.url, res.StatusCode, tt.expectedCode)
 			}
+			if res.Headers["Server"] != "TestMockServer/1.0" {
+				t.Errorf("CheckHTTP expected Server header, got %q", res.Headers["Server"])
+			}
 		})
+	}
+}
+
+func TestCheckHTTP_TLS(t *testing.T) {
+	tlsServer := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("secure"))
+	}))
+	defer tlsServer.Close()
+
+	target := checker.ParseTarget(tlsServer.URL)
+	res := checker.CheckHTTP(context.Background(), target, 2*time.Second)
+
+	if !res.Up {
+		t.Fatalf("Expected TLS server to be UP, got error: %v", res.Err)
+	}
+	if res.Cert == nil {
+		t.Fatalf("Expected CertInfo to be populated for HTTPS server")
+	}
+	if res.Cert.TLSVersion == "" {
+		t.Errorf("Expected non-empty TLS version")
+	}
+	if res.Cert.DaysLeft <= 0 && res.Cert.Expired {
+		t.Errorf("Expected newly generated test cert not to be expired")
 	}
 }
 

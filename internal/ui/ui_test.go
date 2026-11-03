@@ -113,6 +113,20 @@ func TestModelKeyboardInteractions(t *testing.T) {
 		t.Errorf("Expected AudioAlert to toggle from %v, got %v", initialAlert, m.AudioAlert)
 	}
 
+	// Test opening Inspector mode with Enter
+	newModel, _ = m.Update(tea.KeyMsg{Type: tea.KeyEnter})
+	m = newModel.(ui.Model)
+	if !m.InspectorMode {
+		t.Errorf("Expected InspectorMode to be true after pressing Enter")
+	}
+
+	// Test closing Inspector mode with Esc
+	newModel, _ = m.Update(tea.KeyMsg{Type: tea.KeyEsc})
+	m = newModel.(ui.Model)
+	if m.InspectorMode {
+		t.Errorf("Expected InspectorMode to be false after pressing Esc")
+	}
+
 	// Test deletion
 	initialLen := len(m.Targets)
 	newModel, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'x'}})
@@ -152,5 +166,55 @@ func TestViewRendering(t *testing.T) {
 	}
 	if !strings.Contains(viewOutput, "Theme (") {
 		t.Errorf("View missing Theme hotkey guide")
+	}
+	if !strings.Contains(viewOutput, "Inspect") {
+		t.Errorf("View missing Inspect hotkey guide")
+	}
+}
+
+func TestInspectorViewRendering(t *testing.T) {
+	targets := []checker.Target{
+		checker.ParseTarget("https://google.com"),
+	}
+
+	model := ui.New(targets, 2*time.Second)
+	model.Targets[0].Checking = false
+	model.Targets[0].Result = &checker.Result{
+		Target:      targets[0],
+		Up:          true,
+		StatusCode:  200,
+		Latency:     45 * time.Millisecond,
+		ResolvedIPs: []string{"142.250.190.46"},
+		Cert: &checker.CertInfo{
+			Issuer:     "Google Trust Services",
+			CommonName: "*.google.com",
+			TLSVersion: "TLS 1.3",
+			NotBefore:  time.Now().Add(-24 * time.Hour),
+			NotAfter:   time.Now().Add(60 * 24 * time.Hour),
+			DaysLeft:   60,
+			Expired:    false,
+		},
+		Headers: map[string]string{
+			"Server": "gws",
+		},
+	}
+	model.InspectorMode = true
+
+	viewOutput := model.View()
+
+	if !strings.Contains(viewOutput, "TARGET INSPECTOR") {
+		t.Errorf("Expected 'TARGET INSPECTOR' in inspector view")
+	}
+	if !strings.Contains(viewOutput, "Google Trust Services") {
+		t.Errorf("Expected certificate issuer in inspector view")
+	}
+	if !strings.Contains(viewOutput, "142.250.190.46") {
+		t.Errorf("Expected resolved IP in inspector view")
+	}
+	if !strings.Contains(viewOutput, "VALID (60 DAYS LEFT)") {
+		t.Errorf("Expected cert validity badge in inspector view")
+	}
+	if !strings.Contains(viewOutput, "gws") {
+		t.Errorf("Expected Server header in inspector view")
 	}
 }
