@@ -6,20 +6,22 @@ import (
 	"os"
 	"time"
 
-	tea "github.com/charmbracelet/bubbletea"
 	"gocheck-net/internal/checker"
 	"gocheck-net/internal/ui"
+
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 var defaultTargets = []string{
+	"https://enois.ia.br", // É NÓIS MEL
 	"https://google.com",
 	"https://github.com",
 	"https://cloudflare.com",
-	"1.1.1.1:53",               // Cloudflare DNS TCP
-	"8.8.8.8:53",               // Google DNS TCP
+	"1.1.1.1:53", // Cloudflare DNS TCP
+	"8.8.8.8:53", // Google DNS TCP
 	"https://httpbin.org/status/200",
 	"https://httpbin.org/status/500", // Will show DOWN (server error)
-	"localhost:59999",                 // Unopened local port, will show DOWN
+	"localhost:59999",                // Unopened local port, will show DOWN
 }
 
 func main() {
