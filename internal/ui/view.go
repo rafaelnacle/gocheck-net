@@ -174,9 +174,9 @@ func (m Model) View() string {
 	b.WriteString("\n\n")
 
 	// 8. Footer Help Bar
-	bellStatus := "ON 🔔"
+	bellStatus := "ON"
 	if !m.AudioAlert {
-		bellStatus = "OFF 🔕"
+		bellStatus = "OFF"
 	}
 
 	b.WriteString("  ")
