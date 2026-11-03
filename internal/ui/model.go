@@ -3,6 +3,7 @@ package ui
 import (
 	"time"
 
+	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"gocheck-net/internal/checker"
 )
@@ -16,9 +17,15 @@ type TargetItem struct {
 
 // Model represents the Bubble Tea application state.
 type Model struct {
-	Targets  []TargetItem
-	Timeout  time.Duration
-	Quitting bool
+	Targets      []TargetItem
+	Timeout      time.Duration
+	Cursor       int             // Selected row in table
+	CurrentTheme int             // Index in Themes slice
+	AudioAlert   bool            // Play terminal bell on downtime
+	InputMode    bool            // True when typing new target
+	TextInput    textinput.Model // Bubbles textinput widget
+	FlashNotice  string          // Brief notification message
+	Quitting     bool
 }
 
 // checkDoneMsg is delivered to Update when an async probe completes.
@@ -27,7 +34,7 @@ type checkDoneMsg struct {
 	Result checker.Result
 }
 
-// New creates and initializes a Model with target items.
+// New creates and initializes a Model with target items, bubbles textinput, and default settings.
 func New(targets []checker.Target, timeout time.Duration) Model {
 	items := make([]TargetItem, len(targets))
 	for i, t := range targets {
@@ -38,9 +45,20 @@ func New(targets []checker.Target, timeout time.Duration) Model {
 		}
 	}
 
+	ti := textinput.New()
+	ti.Placeholder = "e.g. reddit.com, https://api.github.com, or 1.1.1.1:53"
+	ti.Prompt = " ❯ Add Target: "
+	ti.CharLimit = 120
+
 	return Model{
-		Targets: items,
-		Timeout: timeout,
+		Targets:      items,
+		Timeout:      timeout,
+		Cursor:       0,
+		CurrentTheme: 0,
+		AudioAlert:   true, // Enabled by default for outages
+		InputMode:    false,
+		TextInput:    ti,
+		Quitting:     false,
 	}
 }
 
